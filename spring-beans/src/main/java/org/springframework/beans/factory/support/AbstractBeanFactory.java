@@ -257,6 +257,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		// 这个sharedInstance未必实例化完成，但是提早返回以允许setter类型的循环依赖以及手工注册的单例。
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -346,7 +347,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
-				    // 单例的实例化
+					// 2020/12/07 [dingdong] 这里面会检测循环引用
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 						    // 实实在在的创建新对象
@@ -368,6 +369,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
 					try {
+						// 在创建多例对象之前将其name放到一个ThreadLocal中去便于检测循环依赖
 						beforePrototypeCreation(beanName);
 						prototypeInstance = createBean(beanName, mbd, args);
 					}
@@ -394,6 +396,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 								return createBean(beanName, mbd, args);
 							}
 							finally {
+								// 移除创建实例过程中的缓存
 								afterPrototypeCreation(beanName);
 							}
 						});

@@ -179,8 +179,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
+		// 2020/12/07 [dingdong] singletonObjects 中保存的是已经完整创建好的对象
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 2020/12/07 [dingdong] 如果这个bean正在创建中，那么应该可以拿到一个为初始化完整的对象，亦可以作为早期引用被注入到其他对象中去。
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			// 2020/12/07 [dingdong] earlySingletonObjects 中保存的就是尚未初始化完整的对象
 			singletonObject = this.earlySingletonObjects.get(beanName);
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
@@ -189,6 +192,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
+							// TODO 2020/12/07 [dingdong] singletonFactories 中保存的是什么？？
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();
@@ -225,7 +229,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
-				// 创建bean之前回调，检测循环依赖。
+				// 2020/12/07 [dingdong] 创建bean之前回调，检测循环依赖。
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
