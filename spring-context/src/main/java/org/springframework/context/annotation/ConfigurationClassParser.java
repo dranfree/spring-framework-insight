@@ -268,10 +268,13 @@ class ConfigurationClassParser {
 			throws IOException {
 
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
+			// 递归处理成员内部类
 			// Recursively process any member (nested) classes first
 			processMemberClasses(configClass, sourceClass, filter);
 		}
 
+		// 2020/12/08 [dingdong] 处理 @PropertySource 注解
+		// 这个注解用来加载指定的属性文件（.properties）
 		// Process any @PropertySource annotations
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
@@ -285,6 +288,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		// 2020/12/08 [dingdong] 处理 @ComponentScan 注解
 		// Process any @ComponentScan annotations
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
@@ -307,9 +311,11 @@ class ConfigurationClassParser {
 			}
 		}
 
+		// 2020/12/08 [dingdong] 处理 @Import 注解
 		// Process any @Import annotations
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
+		// 2020/12/08 [dingdong] 处理 @ImportResource 注解
 		// Process any @ImportResource annotations
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
@@ -322,6 +328,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		// 2020/12/08 [dingdong] 处理 @Bean 注解
 		// Process individual @Bean methods
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
@@ -331,6 +338,7 @@ class ConfigurationClassParser {
 		// Process default methods on interfaces
 		processInterfaces(configClass, sourceClass);
 
+		// 2020/12/08 [dingdong] 处理子类
 		// Process superclass, if any
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
