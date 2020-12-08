@@ -348,6 +348,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Create bean instance.
 				if (mbd.isSingleton()) {
 					// 2020/12/07 [dingdong] 这里面会检测循环引用
+					// 2020/12/08 [dingdong] 先去 singletonObjects 这个map中查找，
+					// 如果没有找到，那么检测循环引用（将当前beanName放到“正在创建”的集合中）。
+					// 然后通过提供的ObjectFactory获取新的实例。
+					// 最后，将新创建的实例放进 singletonObjects 中，并从 singletonFactories 和 earlySingletonObjects 中移除。
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 						    // 实实在在的创建新对象

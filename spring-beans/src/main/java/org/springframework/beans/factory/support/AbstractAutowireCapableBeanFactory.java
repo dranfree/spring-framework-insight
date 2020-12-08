@@ -507,7 +507,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Prepare method overrides.
-		// TODO 方法覆写
+		// TODO 2020/12/08 [dingdong] 方法覆写
 		// 准备方法覆写，这里又涉及到一个概念：MethodOverrides，它来自于 bean 定义中的 <lookup-method />
 		// 和 <replaced-method />，如果读者感兴趣，回到 bean 解析的地方看看对这两个标签的解析。
 		try {
@@ -573,9 +573,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-			// 初始实例化
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
+		// 2020/12/08 [dingdong] 这里返回的是没有任何代理的对象，并且没有做初始化，仅仅是一个不完整的实例。
 		Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
 		if (beanType != NullBean.class) {
@@ -605,10 +605,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			// 2020/12/07 [dingdong]
+			// 2020/12/07 [dingdong] 添加一个当前实例的 ObjectFactory 缓存到 singletonFactories 中
+			// 会在 org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(java.lang.String, boolean)
+			// 被调用的时候将返回结果放到 earlySingletonObjects 中去，并从 singletonFactories 中移除。
+			// TODO 猜想是尽量给引用者返回一个较为完整的对象？
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
+		// 这是最终返回的对象
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
@@ -1183,10 +1187,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Supplier<?> instanceSupplier = mbd.getInstanceSupplier();
 		if (instanceSupplier != null) {
+			// TODO 2020/12/08 [dingdong]
 			return obtainFromSupplier(instanceSupplier, beanName);
 		}
 
 		if (mbd.getFactoryMethodName() != null) {
+			// 2020/12/08 [dingdong] 工厂方法创建对象
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
 
@@ -1428,8 +1434,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				pvs = mbd.getPropertyValues();
 			}
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
-				// 这里有个非常有用的 BeanPostProcessor 进到这里: AutowiredAnnotationBeanPostProcessor
-				// 对采用 @Autowired、@Value 注解的依赖进行设值
+				// 2020/12/08 [dingdong] 对采用 @Autowired、@Value 注解的依赖进行设值
+				// see AutowiredAnnotationBeanPostProcessor
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {
 					if (filteredPds == null) {

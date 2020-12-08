@@ -1,0 +1,13 @@
+description = "Ding Test"
+
+dependencies {
+    testCompile(project(":spring-aop"))
+    testCompile(project(":spring-beans"))
+    testCompile(project(":spring-context"))
+    testCompile(project(":spring-core"))
+    testCompile(testFixtures(project(":spring-aop")))
+    testCompile(testFixtures(project(":spring-beans")))
+    testCompile(testFixtures(project(":spring-core")))
+    testCompile(testFixtures(project(":spring-tx")))
+    testCompile("javax.annotation:javax.annotation-api")
+}
