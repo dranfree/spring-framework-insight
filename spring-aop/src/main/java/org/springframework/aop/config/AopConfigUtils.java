@@ -97,6 +97,8 @@ public abstract class AopConfigUtils {
 	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 2020/12/09 [dingdong] 注册一个 AspectJ 的处理器，这是一个 BeanPostProccessor 。
+		// 实现了 postProcessBeforeInstantiation 方法，在目标类对象实例化之前返回一个代理对象。
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 

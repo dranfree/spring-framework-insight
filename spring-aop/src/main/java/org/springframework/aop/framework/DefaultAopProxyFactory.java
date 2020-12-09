@@ -55,6 +55,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	private static final boolean IN_NATIVE_IMAGE = (System.getProperty("org.graalvm.nativeimage.imagecode") != null);
 
 
+	// 2020/12/09 [dingdong] 是采用JDK动态代理还是采用CGLIB代理
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
 		if (!IN_NATIVE_IMAGE &&
@@ -64,6 +65,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
+			// 如果是一个接口或者已经是一个代理对象了，那么采用JDK动态代理。
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}

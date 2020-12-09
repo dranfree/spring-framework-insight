@@ -257,6 +257,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// Create proxy here if we have a custom TargetSource.
 		// Suppresses unnecessary default instantiation of the target bean:
 		// The TargetSource will handle target instances in a custom fashion.
+		// TODO 2020/12/09 [dingdong] 什么情况下才会进入这个分支提前返回一个代理对象？
 		TargetSource targetSource = getCustomTargetSource(beanClass, beanName);
 		if (targetSource != null) {
 			if (StringUtils.hasLength(beanName)) {
@@ -284,6 +285,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
+			// 2020/12/09 [dingdong] 正常情况下会在bean初始化之后再进入这个里面，
+			// 通过动态代理或CGLIB增加切面逻辑，返回一个原始对象的代理对象。
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
 				return wrapIfNecessary(bean, beanName, cacheKey);
@@ -334,9 +337,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		// 2020/12/09 [dingdong] 查找符合该bean的所有切面逻辑
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			// 2020/12/09 [dingdong] 创建AOP代理对象
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
@@ -458,6 +463,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			proxyFactory.setPreFiltered(true);
 		}
 
+		// 2020/12/09 [dingdong] 创建代理对象
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 

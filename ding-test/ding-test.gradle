@@ -10,4 +10,6 @@ dependencies {
     testCompile(testFixtures(project(":spring-core")))
     testCompile(testFixtures(project(":spring-tx")))
     testCompile("javax.annotation:javax.annotation-api")
+    // AspectJ注解支持
+    testCompile("org.aspectj:aspectjweaver")
 }
