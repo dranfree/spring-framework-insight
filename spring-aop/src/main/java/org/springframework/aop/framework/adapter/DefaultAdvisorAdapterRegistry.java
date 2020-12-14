@@ -53,6 +53,10 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 	}
 
 
+	// 2020/12/14 [dingdong] Advisor holding Advice
+	// Advice就是在目标方法执行的增强逻辑的抽象
+	// 一个 @Around、@Before、@After 等注解的方法将会被转化成一个 Advice 对象。
+	// TransactionInterceptor is a Advice, it will be wrapped as a Advisor and returned.
 	@Override
 	public Advisor wrap(Object adviceObject) throws UnknownAdviceTypeException {
 		if (adviceObject instanceof Advisor) {
