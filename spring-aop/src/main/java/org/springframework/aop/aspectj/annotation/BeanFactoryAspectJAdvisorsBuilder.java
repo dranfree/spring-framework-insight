@@ -31,6 +31,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 2020/12/14 [dingdong] @Aspect 注解相关
+ *
  * Helper for retrieving @AspectJ beans from a BeanFactory and building
  * Spring Advisors based on them, for use with auto-proxying.
  *
@@ -84,6 +86,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		List<String> aspectNames = this.aspectBeanNames;
 
 		if (aspectNames == null) {
+			// 2020/12/14 [dingdong] 首次调用的时候缓存 @Aspect bean
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
