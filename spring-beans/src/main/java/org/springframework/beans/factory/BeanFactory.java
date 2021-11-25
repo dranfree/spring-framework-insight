@@ -115,6 +115,8 @@ import org.springframework.lang.Nullable;
  */
 public interface BeanFactory {
 
+	// 显式/隐式调用 getBean 方法都会触发 bean 的加载流程
+
 	/**
 	 * Used to dereference a {@link FactoryBean} instance and distinguish it from
 	 * beans <i>created</i> by the FactoryBean. For example, if the bean named
