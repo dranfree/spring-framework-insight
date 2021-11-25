@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.core.io.Resource</OriginalElement>
+  <nodes>
+    <node x="766.0833333333334" y="166.0">org.springframework.core.io.ContextResource</node>
+    <node x="540.0" y="251.0">org.springframework.core.io.UrlResource</node>
+    <node x="265.00000000000006" y="251.0">org.springframework.core.io.InputStreamResource</node>
+    <node x="378.20833333333337" y="0.0">org.springframework.core.io.InputStreamSource</node>
+    <node x="990.0" y="251.0">org.springframework.core.io.ClassPathResource</node>
+    <node x="0.0" y="251.0">org.springframework.core.io.FileSystemResource</node>
+    <node x="735.0" y="251.0">org.springframework.core.io.ByteArrayResource</node>
+    <node x="521.0833333333334" y="166.0">org.springframework.core.io.AbstractResource</node>
+    <node x="423.20833333333337" y="83.0">org.springframework.core.io.Resource</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.core.io.Resource" target="org.springframework.core.io.InputStreamSource" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.FileSystemResource" target="org.springframework.core.io.Resource" relationship="REALIZATION">
+      <point x="-61.25" y="-16.5" />
+      <point x="61.25" y="146.0" />
+      <point x="375.70833333333337" y="146.0" />
+      <point x="375.70833333333337" y="136.0" />
+      <point x="459.45833333333337" y="136.0" />
+      <point x="-36.25" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.ByteArrayResource" target="org.springframework.core.io.AbstractResource" relationship="GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="852.5" y="225.0" />
+      <point x="633.5833333333334" y="225.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.ClassPathResource" target="org.springframework.core.io.AbstractResource" relationship="GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="1107.5" y="225.0" />
+      <point x="633.5833333333334" y="225.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.FileSystemResource" target="org.springframework.core.io.AbstractResource" relationship="GENERALIZATION">
+      <point x="61.25" y="-16.5" />
+      <point x="183.75" y="225.0" />
+      <point x="633.5833333333334" y="225.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.InputStreamResource" target="org.springframework.core.io.AbstractResource" relationship="GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="392.50000000000006" y="225.0" />
+      <point x="633.5833333333334" y="225.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.AbstractResource" target="org.springframework.core.io.Resource" relationship="REALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="633.5833333333334" y="146.0" />
+      <point x="375.70833333333337" y="146.0" />
+      <point x="375.70833333333337" y="136.0" />
+      <point x="459.45833333333337" y="136.0" />
+      <point x="-36.25" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.ContextResource" target="org.springframework.core.io.Resource" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="873.5833333333334" y="136.0" />
+      <point x="531.9583333333334" y="136.0" />
+      <point x="36.25" y="16.5" />
+    </edge>
+    <edge source="org.springframework.core.io.UrlResource" target="org.springframework.core.io.AbstractResource" relationship="GENERALIZATION">
+      <point x="0.0" y="-16.5" />
+      <point x="627.5" y="225.0" />
+      <point x="633.5833333333334" y="225.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.976706827309237" showDependencies="false" x="612.5" y="142.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
