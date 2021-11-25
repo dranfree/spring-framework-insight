@@ -19,6 +19,8 @@ package org.springframework.core.io;
 import org.springframework.lang.Nullable;
 
 /**
+ * 用户自定义资源加载协议，这个接口不是很重要。
+ * <p>
  * A resolution strategy for protocol-specific resource handles.
  *
  * <p>Used as an SPI for {@link DefaultResourceLoader}, allowing for
@@ -26,8 +28,8 @@ import org.springframework.lang.Nullable;
  * implementation (or application context implementation).
  *
  * @author Juergen Hoeller
- * @since 4.3
  * @see DefaultResourceLoader#addProtocolResolver
+ * @since 4.3
  */
 @FunctionalInterface
 public interface ProtocolResolver {

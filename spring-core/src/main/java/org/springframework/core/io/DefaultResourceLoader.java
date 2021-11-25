@@ -16,6 +16,12 @@
 
 package org.springframework.core.io;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ResourceUtils;
+import org.springframework.util.StringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -23,12 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the {@link ResourceLoader} interface.
@@ -132,18 +132,32 @@ public class DefaultResourceLoader implements ResourceLoader {
 
 	/**
 	 * Clear all resource caches in this resource loader.
-	 * @since 5.0
+	 *
 	 * @see #getResourceCache
+	 * @since 5.0
 	 */
 	public void clearResourceCaches() {
 		this.resourceCaches.clear();
 	}
 
 
+	/**
+	 * 核心方法，几种location参数：
+	 * <ol>
+	 *     <li>本地文件(FileSystemResource)：file://C:\Users\e-ran.ding\Desktop\Resource.png</li>
+	 *     <li>网络资源(UrlResource)：https://ask.qcloudimg.com/http-save/yehe-3233770/sxt0975aw1.png?imageView2/2/w/1620</li>
+	 *     <li>ClassPath资源(ClassPathResource)：classpath:log4j2-test.xml</li>
+	 *     <li>ClassPath相对路径资源(ClassPathContextResource)：/log4j2-test.xml</li>
+	 * </ol>
+	 *
+	 * @param location the resource location
+	 * @return
+	 */
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
 
+		// SPI，用户自定义资源加载协议，see DefaultResourceLoader#addProtocolResolver(ProtocolResolver)
 		for (ProtocolResolver protocolResolver : this.protocolResolvers) {
 			Resource resource = protocolResolver.resolve(location, this);
 			if (resource != null) {
@@ -151,20 +165,24 @@ public class DefaultResourceLoader implements ResourceLoader {
 			}
 		}
 
+		// “/”开头，返回 ClassPathContextResource 类型的资源
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
+		// “classpath:” 开头，返回 ClassPathResource 类型的资源
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
+		// 1.是否为文件 URL，如果是则返回 FileSystemResource 类型的资源。
+		// 2.否则返回 UrlResource 类型的资源
 		else {
 			try {
 				// Try to parse the location as a URL...
 				URL url = new URL(location);
 				return (ResourceUtils.isFileURL(url) ? new FileUrlResource(url) : new UrlResource(url));
-			}
-			catch (MalformedURLException ex) {
+			} catch (MalformedURLException ex) {
 				// No URL -> resolve as resource path.
+				// 返回 ClassPathContextResource 类型的资源
 				return getResourceByPath(location);
 			}
 		}

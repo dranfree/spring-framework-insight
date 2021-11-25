@@ -54,6 +54,13 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 最常用的实现类，支持以下模式：
+ * <ol>
+ *     <li>无通配符</li>
+ *     <li>ClassPath前缀：classpath*:</li>
+ *     <li>Ant-style正则表达式</li>
+ * </ol>
+ *
  * A {@link ResourcePatternResolver} implementation that is able to resolve a
  * specified resource location path into one or more matching Resources.
  * The source path may be a simple path which has a one-to-one mapping to a
