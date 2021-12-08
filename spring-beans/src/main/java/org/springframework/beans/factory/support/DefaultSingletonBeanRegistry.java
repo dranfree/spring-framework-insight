@@ -16,29 +16,17 @@
 
 package org.springframework.beans.factory.support;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.core.SimpleAliasRegistry;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generic registry for shared bean instances, implementing the
@@ -73,46 +61,87 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements SingletonBeanRegistry {
 
-	/** Logger available to subclasses */
+	/**
+	 * Logger available to subclasses
+	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	/** Cache of singleton objects: bean name --> bean instance */
+	/**
+	 * 存放的是创建完成的完整的 bean 实例：
+	 * <ol>
+	 *     <li>手动注册：{@link SingletonBeanRegistry#registerSingleton}</li>
+	 *     <li>被动创建：{@link this#getSingleton(String, ObjectFactory)}</li>
+	 * </ol>
+	 * <p>
+	 * Cache of singleton objects: bean name --> bean instance
+	 */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
-	/** Cache of singleton factories: bean name --> ObjectFactory */
+	/**
+	 * 创建早期单例对象的工厂对象
+	 * <p>
+	 * Cache of singleton factories: bean name --> ObjectFactory
+	 */
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
-	/** Cache of early singleton objects: bean name --> bean instance */
+	/**
+	 * 循环依赖的关键所在：
+	 * <p>
+	 * 存放不完整的 bean 实例，即尚未执行依赖注入和 init 方法的对象。
+	 * <p>
+	 * Cache of early singleton objects: bean name --> bean instance
+	 *
+	 * @see this#getSingleton(String, boolean)
+	 * @see this#getSingleton(String, ObjectFactory) 这个方法得到的对象是完整的
+	 */
 	private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
 
-	/** Set of registered singletons, containing the bean names in registration order */
+	/**
+	 * Set of registered singletons, containing the bean names in registration order
+	 */
 	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
-	/** Names of beans that are currently in creation */
+	/**
+	 * Names of beans that are currently in creation
+	 */
 	private final Set<String> singletonsCurrentlyInCreation =
 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
-	/** Names of beans currently excluded from in creation checks */
+	/**
+	 * Names of beans currently excluded from in creation checks
+	 */
 	private final Set<String> inCreationCheckExclusions =
 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
-	/** List of suppressed Exceptions, available for associating related causes */
+	/**
+	 * List of suppressed Exceptions, available for associating related causes
+	 */
 	@Nullable
 	private Set<Exception> suppressedExceptions;
 
-	/** Flag that indicates whether we're currently within destroySingletons */
+	/**
+	 * Flag that indicates whether we're currently within destroySingletons
+	 */
 	private boolean singletonsCurrentlyInDestruction = false;
 
-	/** Disposable bean instances: bean name --> disposable instance */
+	/**
+	 * Disposable bean instances: bean name --> disposable instance
+	 */
 	private final Map<String, Object> disposableBeans = new LinkedHashMap<>();
 
-	/** Map between containing bean names: bean name --> Set of bean names that the bean contains */
+	/**
+	 * Map between containing bean names: bean name --> Set of bean names that the bean contains
+	 */
 	private final Map<String, Set<String>> containedBeanMap = new ConcurrentHashMap<>(16);
 
-	/** Map between dependent bean names: bean name --> Set of dependent bean names */
+	/**
+	 * Map between dependent bean names: bean name --> Set of dependent bean names
+	 */
 	private final Map<String, Set<String>> dependentBeanMap = new ConcurrentHashMap<>(64);
 
-	/** Map between depending bean names: bean name --> Set of bean names for the bean's dependencies */
+	/**
+	 * Map between depending bean names: bean name --> Set of bean names for the bean's dependencies
+	 */
 	private final Map<String, Set<String>> dependenciesForBeanMap = new ConcurrentHashMap<>(64);
 
 
@@ -180,13 +209,18 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+		// 从单例缓存中加载 bean 实例
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 缓存中没有 bean，且当前 bean 正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
+				// TODO 从 earlySingletonObjects 获取
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				if (singletonObject == null && allowEarlyReference) {
+					// 允许提前引用
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
+						// 这里拿到的其实是不完整的对象
 						singletonObject = singletonFactory.getObject();
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						this.singletonFactories.remove(beanName);
@@ -616,6 +650,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * should <i>not</i> have their own mutexes involved in singleton creation,
 	 * to avoid the potential for deadlocks in lazy-init situations.
 	 */
+	@Override
 	public final Object getSingletonMutex() {
 		return this.singletonObjects;
 	}
