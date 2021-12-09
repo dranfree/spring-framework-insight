@@ -67,6 +67,14 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/**
+	 * Spring "三级缓存"：
+	 * <ol>
+	 *     <li>singletonObjects：单例对象的缓存</li>
+	 *     <li>earlySingletonObjects：提前曝光的单例对象缓存，这里存储的就是 singletonFactory 的执行结果，当对象完整初始化后会从这里移除。</li>
+	 *     <li>singletonFactories：提前曝光的单例对象工厂的缓存，当对象完整初始化后会从这里移除。</li>
+	 * </ol>
+	 * 获取 bean 的时候按照 singletonObjects => earlySingletonObjects => singletonFactories 顺序获取
+	 * <p>
 	 * 存放的是创建完成的完整的 bean 实例：
 	 * <ol>
 	 *     <li>手动注册：{@link SingletonBeanRegistry#registerSingleton}</li>
@@ -166,6 +174,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param singletonObject the singleton object
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
+		// 添加单例到一级缓存中，并将其从二级/三级缓存中删除。
 		synchronized (this.singletonObjects) {
 			this.singletonObjects.put(beanName, singletonObject);
 			this.singletonFactories.remove(beanName);
@@ -209,12 +218,12 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-		// 从单例缓存中加载 bean 实例
+		// 解决循环依赖的“三级缓存”逻辑
+		// 从单例缓存中加载 bean 实例，先查看有没有完整的实例。
 		Object singletonObject = this.singletonObjects.get(beanName);
 		// 缓存中没有 bean，且当前 bean 正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
-				// TODO 从 earlySingletonObjects 获取
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				if (singletonObject == null && allowEarlyReference) {
 					// 允许提前引用
@@ -259,6 +268,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
+					// 这个 singletonFactory 中是实际的创建动作
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
