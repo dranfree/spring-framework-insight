@@ -534,6 +534,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// 依赖注入
 			populateBean(beanName, mbd, instanceWrapper);
+			// 初始化对象
+			// 1.BeanAware
+			// 2.BeanPostProcessor#postProcessBeforeInitialization 初始化前回调
+			// 3.init-method
+			// 		3.1 InitializingBean
+			// 		3.2 init-method
+			// 4.BeanPostProcessor#postProcessAfterInitialization 初始化后回调
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
