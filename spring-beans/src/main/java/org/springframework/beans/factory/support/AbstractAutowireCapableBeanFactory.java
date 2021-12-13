@@ -471,6 +471,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 大致流程：
+	 * <ol>
+	 *     <li>实例化</li>
+	 *     <li>回调几个 Aware 接口</li>
+	 *     <li>BeanPostProcessor 环绕增强</li>
+	 *     <li>IntitializingBean & init-method 处理</li>
+	 *     <li>DisposableBean & destroy-method 注册</li>
+	 * </ol>
+	 *
 	 * Actually create the specified bean. Pre-creation processing has already happened
 	 * at this point, e.g. checking {@code postProcessBeforeInstantiation} callbacks.
 	 * <p>Differentiates between default bean instantiation, use of a
