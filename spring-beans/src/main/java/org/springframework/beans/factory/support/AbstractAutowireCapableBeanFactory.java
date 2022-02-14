@@ -1708,6 +1708,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
+			// AOP 发生在此处，当 bean 初始化完成之后，对原始对象进行增强。
+			// org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

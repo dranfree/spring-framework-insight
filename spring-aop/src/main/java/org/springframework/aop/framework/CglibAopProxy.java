@@ -174,6 +174,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 
+			// 验证是否有 final 修饰的方法，不报错，打警告日志。
 			// Validate the class, writing log messages as necessary.
 			validateClassIfNecessary(proxySuperClass, classLoader);
 
