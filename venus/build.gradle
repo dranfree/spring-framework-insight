@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'org.springframework'
+version '5.0.6.RELEASE'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(project(":spring-core"))
+    compile(project(":spring-context"))
+    compile(project(":spring-aop"))
+    compile(project(":spring-aspects"))
+    compile(project(":spring-test"))
+    testImplementation 'junit:junit:4.13.2'
+}

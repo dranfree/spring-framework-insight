@@ -90,7 +90,7 @@ public class AspectJAutoProxyCreatorTests {
 	public void testMultipleAspectsWithParameterApplied() {
 		ClassPathXmlApplicationContext bf = newContext("aspects.xml");
 
-		ITestBean tb = (ITestBean) bf.getBean("adrian");
+ 		ITestBean tb = (ITestBean) bf.getBean("adrian");
 		tb.setAge(10);
 		assertEquals(20, tb.getAge());
 	}
