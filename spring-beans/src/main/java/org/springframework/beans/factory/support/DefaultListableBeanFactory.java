@@ -695,7 +695,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		// Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
+			// 合并父bean的定义
+			// 使用<bean/>标签定义bean的时候，可以继承其他bean的定义，这里的作用就是合并父bean的属性。
+			// <bean id="user" scope="prototype" abstract="true" />
+			// <bean id="user1" parent="user" />
+			// <bean id="user2" parent="user1" /> 非抽象的BeanDefinition也可以被继承
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			// isAbstract: <bean ... abstract="true" /> 和抽象类没关系
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				if (isFactoryBean(beanName)) {
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);

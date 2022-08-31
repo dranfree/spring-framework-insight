@@ -1279,6 +1279,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					try {
 						String parentBeanName = transformedBeanName(bd.getParentName());
 						if (!beanName.equals(parentBeanName)) {
+							// 我的父bean也有可能继承了其他的bean定义，此处递归合并。
 							pbd = getMergedBeanDefinition(parentBeanName);
 						}
 						else {
@@ -1298,7 +1299,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 								"Could not resolve parent bean definition '" + bd.getParentName() + "'", ex);
 					}
 					// Deep copy with overridden values.
+					// 父bean的属性定义
 					mbd = new RootBeanDefinition(pbd);
+					// 用自己定义的属性覆盖父bean的属性配置
 					mbd.overrideFrom(bd);
 				}
 
