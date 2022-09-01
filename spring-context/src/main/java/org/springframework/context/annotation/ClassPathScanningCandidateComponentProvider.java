@@ -204,9 +204,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
+		// 注册@Component过滤器，这就是@Component注解扫描的原理。
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
 		try {
+			// JSR250提供的注解，用的很少。
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false));
 			logger.debug("JSR-250 'javax.annotation.ManagedBean' found and supported for component scanning");
@@ -215,6 +217,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			// JSR-250 1.1 API (as included in Java EE 6) not available - simply skip.
 		}
 		try {
+			// JSR330提供的注解，用的很少。
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false));
 			logger.debug("JSR-330 'javax.inject.Named' annotation found and supported for component scanning");
@@ -310,9 +313,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
+			// 只有只用了spring.components索引文件管理bean的时候，才会走到这个分支，加快扫描速度。
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 一般都是走这个分支
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -418,6 +423,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		try {
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 扫描包下面的所有文件（一个个.class文件）
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -427,11 +433,14 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				}
 				if (resource.isReadable()) {
 					try {
+						// 元数据读取器(读取类元数据和注解元数据)
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						// 过滤器过滤
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+							// 过滤掉内部类、抽象类
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
@@ -486,15 +495,21 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * and does match at least one include filter.
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
+	 *
+	 * @see #registerDefaultFilters() 注册一些默认的过滤器
 	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		// 排除过滤器
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+		// 包含过滤器
+		// Spring内部会放一个默认过滤器，用于过滤@Component注解的类，这就是@Component注解扫描的原理。
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
+				// @Conditional条件过滤
 				return isConditionMatch(metadataReader);
 			}
 		}
@@ -525,6 +540,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
+		// 1.独立的类(普通内部类无法直接实例化)
+		// 2.非抽象类
+		// 2.抽象类，但是内部有方法上添加了@Lookup注解，也符合条件。
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));
 	}
