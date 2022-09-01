@@ -253,7 +253,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		// 返回 bean 名称
 		// 1.剥离工厂引用前缀（&）
-		// 2.如果 name 是 alias，则获取对应映射的 beanName，alias 保存在 SimpleAliasRegistry 中，用 map 存储。
+		// 2.如果 name 是 alias，则获取对应 id，alias 保存在 SimpleAliasRegistry 中，用 map 存储。
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
@@ -270,6 +270,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 			// 完成 FactoryBean 的相关处理，获取其处理结果。
+			// => AbstractBeanFactory
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		} else {
 			// Fail if we're already creating this bean instance:
@@ -1638,6 +1639,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			if (beanInstance instanceof NullBean) {
 				return beanInstance;
 			}
+			// 如果name是带&前缀的，并且instance不是FactoryBean，这里直接抛异常。
 			if (!(beanInstance instanceof FactoryBean)) {
 				throw new BeanIsNotAFactoryException(transformedBeanName(name), beanInstance.getClass());
 			}
@@ -1646,12 +1648,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
+		// 两种情况直接返回：
+		// 1.我们需要的是一个FactoryBean，并且这个实例也是一个FactoryBean对象；
+		// 2.我们传进来的是一个普通Bean名字，并且这个实例也是一个普通对象。
 		if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
 			return beanInstance;
 		}
 
+		// 走到这里，说明name是一个普通bean名字，但是拿到的对象是一个FactoryBean类型，下面要通过这个FactoryBean对象拿到getObject方法返回的对象。
+
 		Object object = null;
 		if (mbd == null) {
+			// 缓存里面有就直接返回了
 			object = getCachedObjectForFactoryBean(beanName);
 		}
 		if (object == null) {
@@ -1661,7 +1669,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			if (mbd == null && containsBeanDefinition(beanName)) {
 				mbd = getMergedLocalBeanDefinition(beanName);
 			}
+			// TODO 这个是干嘛的？
 			boolean synthetic = (mbd != null && mbd.isSynthetic());
+			// 调用FactoryBean#getObject()方法，并执行生命周期方法。
 			object = getObjectFromFactoryBean(factory, beanName, !synthetic);
 		}
 		return object;
