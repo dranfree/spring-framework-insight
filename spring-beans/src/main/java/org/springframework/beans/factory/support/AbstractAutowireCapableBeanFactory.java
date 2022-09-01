@@ -374,6 +374,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor beanProcessor : getBeanPostProcessors()) {
+			// @PostConstruct注解在这里处理：InitDestroyAnnotationBeanPostProcessor
 			Object current = beanProcessor.postProcessBeforeInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -409,6 +410,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	//---------------------------------------------------------------------
 
 	/**
+	 * 这个方法不管作用域，调用一次创建一次，不关心缓存。
+	 *
 	 * Central method of this class: creates a bean instance,
 	 * populates the bean instance, applies post-processors, etc.
 	 * @see #doCreateBean
@@ -425,6 +428,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point, and
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
+		// 确保类已经被加载了
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -441,6 +445,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+			// 实例化前（使用场景比较少）
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
@@ -502,6 +507,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
+			// 推断构造方法，创建bean实例。
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		final Object bean = instanceWrapper.getWrappedInstance();
@@ -514,6 +520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
+					// 修改 BeanDefinition，在实例化之后，依赖注入之前。
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -591,6 +598,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// @PreDestroy
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -1300,17 +1308,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 获取属性值
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
+		// 这里和@Autowire注解毫无关系
+		// @Bean(autowire="...")
+		// <bean ... autowire="..." />
+		// 这个功能用的很少，因为配置了autowire，那么bean里面的所有setter方法都会被视为注入点。
 		if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_NAME ||
 				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 
-			// 根据属性名称注入
+			// 根据属性名称注入(需要有setter方法)
+			// 1.@Bean(autowire = BY_NAME)
+			// 2.<bean ... autowire="byName" />
+			// 根据setter方法解析beanName，而不是参数名称，需要注意。
 			// Add property values based on autowire by name if applicable.
 			if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_NAME) {
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 
-			// 根据属性类型注入
+			// 根据属性类型注入(需要有setter方法)
+			// 1.@Bean(autowire = BY_TYPE)
+			// 2.<bean ... autowire="byType" />
 			// Add property values based on autowire by type if applicable.
 			if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_TYPE) {
 				autowireByType(beanName, mbd, bw, newPvs);
@@ -1326,12 +1343,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (hasInstAwareBpps || needsDepCheck) {
 			if (pvs == null) {
+				// 这里可能是手动赋的值：MergedBeanDefinitionPostProcessor
+				// 如果你手动给某个属性赋过值的话，那么Spring在处理@Autowire等注解的时候就不会重复为该属性赋值了。
 				pvs = mbd.getPropertyValues();
 			}
 			PropertyDescriptor[] filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 			if (hasInstAwareBpps) {
 				for (BeanPostProcessor bp : getBeanPostProcessors()) {
+					// 这里可以用来处理自定义的注解
 					if (bp instanceof InstantiationAwareBeanPostProcessor) {
+						// @Resource注解：CommonAnnotationBeanPostProcessor
+						// @Autowire注解：AutowiredAnnotationBeanPostProcessor
 						InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 						pvs = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvs == null) {
@@ -1696,6 +1718,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
+			// @PostConstruct在这里处理
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 

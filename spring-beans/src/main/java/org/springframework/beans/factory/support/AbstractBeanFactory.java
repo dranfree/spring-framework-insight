@@ -251,12 +251,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 							  @Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
-		// 返回 bean 名称
+		// 返回 bean 名称（找到bean的id）
 		// 1.剥离工厂引用前缀（&）
 		// 2.如果 name 是 alias，则获取对应 id，alias 保存在 SimpleAliasRegistry 中，用 map 存储。
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
+		// 实际情况，大多数都是单例对象，所以这里直接去单例池里面获取；如果是原型，这里是拿不到的。
 		// 从缓存或实例工厂中获取 bean 对象
 		// Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
@@ -315,15 +316,17 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
+						// 我依赖了对方，对方也一依赖了我，这种@DependsOn依赖是不能提前引用的。
 						// 检查循环依赖：is current bean is already depended by 'dep'
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						// 这里注册也是为了检查循环@DependsOn依赖
 						// 注册依赖关系：'dep' is dependent by current bean
 						registerDependentBean(dep, beanName);
 						try {
-							getBean(dep);
+							getBean(dep); // 创建我依赖的bean对象
 						} catch (NoSuchBeanDefinitionException ex) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"'" + beanName + "' depends on missing bean '" + dep + "'", ex);
@@ -333,6 +336,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					// getSingleton里面有单例池缓存以及循环依赖的判断逻辑
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
@@ -354,6 +358,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					try {
 						// 标记当前原型bean正在创建中，用于检测循环依赖。
 						beforePrototypeCreation(beanName);
+						// 原型bean直接创建，没有任何缓存逻辑。
 						prototypeInstance = createBean(beanName, mbd, args);
 					} finally {
 						// 将当前beanName从正在创建中缓存中移除
@@ -368,6 +373,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						throw new IllegalStateException("No Scope registered for scope name '" + scopeName + "'");
 					}
 					try {
+						// 这里和单例对象的获取逻辑很相似，都是为了实现同一个作用域下的缓存逻辑。
 						Object scopedInstance = scope.get(beanName, () -> {
 							beforePrototypeCreation(beanName);
 							try {
