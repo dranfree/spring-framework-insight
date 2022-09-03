@@ -1354,6 +1354,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					if (bp instanceof InstantiationAwareBeanPostProcessor) {
 						// @Resource注解：CommonAnnotationBeanPostProcessor
 						// @Autowire注解：AutowiredAnnotationBeanPostProcessor
+						// Dubbo也是利用这个注解来处理@Reference注解的：ReferenceAnnotationBeanPostProcessor
+						// Dubbo中@Service注解不是在这个阶段处理的：ServiceAnnotationBeanPostProcessor，是在BeanFactory准备完成后向容器中注册BeanDefinition的。
 						InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 						pvs = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvs == null) {
