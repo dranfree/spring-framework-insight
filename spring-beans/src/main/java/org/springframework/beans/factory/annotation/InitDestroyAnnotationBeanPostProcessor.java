@@ -205,6 +205,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			final LinkedList<LifecycleElement> currDestroyMethods = new LinkedList<>();
 
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// @PostConstruct
 				if (initAnnotationType != null && method.isAnnotationPresent(initAnnotationType)) {
 					LifecycleElement element = new LifecycleElement(method);
 					currInitMethods.add(element);
@@ -212,6 +213,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 						logger.debug("Found init method on class [" + clazz.getName() + "]: " + method);
 					}
 				}
+				// @PreDestroy
 				if (destroyAnnotationType != null && method.isAnnotationPresent(destroyAnnotationType)) {
 					currDestroyMethods.add(new LifecycleElement(method));
 					if (debug) {
@@ -219,7 +221,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 					}
 				}
 			});
-
+			// 先执行父类的初始化方法
 			initMethods.addAll(0, currInitMethods);
 			destroyMethods.addAll(currDestroyMethods);
 			targetClass = targetClass.getSuperclass();

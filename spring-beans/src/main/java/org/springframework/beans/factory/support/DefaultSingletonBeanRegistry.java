@@ -582,14 +582,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #destroyBean
 	 */
 	public void destroySingleton(String beanName) {
+		// 从单例池中移除
 		// Remove a registered singleton of the given name, if any.
 		removeSingleton(beanName);
 
+		// 从DisposableBean缓存中移除
 		// Destroy the corresponding DisposableBean instance.
 		DisposableBean disposableBean;
 		synchronized (this.disposableBeans) {
 			disposableBean = (DisposableBean) this.disposableBeans.remove(beanName);
 		}
+		// 调用生命周期方法
 		destroyBean(beanName, disposableBean);
 	}
 
@@ -610,15 +613,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 			if (logger.isDebugEnabled()) {
 				logger.debug("Retrieved dependent beans for bean '" + beanName + "': " + dependencies);
 			}
+			// 先销毁@DependsOn依赖的Bean对象
 			for (String dependentBeanName : dependencies) {
 				destroySingleton(dependentBeanName);
 			}
 		}
 
+		// 调用DisposableBean#destroy()方法
 		// Actually destroy the bean now...
 		if (bean != null) {
 			try {
-				bean.destroy();
+				bean.destroy(); // 这里是DisposableBeanAdapter对象，适配了所有的销毁方法。
 			}
 			catch (Throwable ex) {
 				logger.error("Destroy method on bean with name '" + beanName + "' threw an exception", ex);
