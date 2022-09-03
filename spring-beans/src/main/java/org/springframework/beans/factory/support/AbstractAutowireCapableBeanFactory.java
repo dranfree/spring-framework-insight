@@ -556,6 +556,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 3.init-method
 			// 		3.1 InitializingBean
 			// 		3.2 init-method
+			// 		3.3 @PostConstruct
 			// 4.BeanPostProcessor#postProcessAfterInitialization 初始化后回调
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
@@ -1312,6 +1313,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// @Bean(autowire="...")
 		// <bean ... autowire="..." />
 		// 这个功能用的很少，因为配置了autowire，那么bean里面的所有setter方法都会被视为注入点。
+		// 注意：这里并没有真正进行依赖注入，只是将需要注入的属性找出来。
 		if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_NAME ||
 				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
@@ -1370,7 +1372,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (pvs != null) {
-			// 这一步才是真正做属性注入的，前面只是获取了待注入的 bean 保存起来。
+			// 通过MergedBeanDefinitionPostProcessor手动给属性赋的值，在这里处理，会覆盖@Autowire的赋值。
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1394,9 +1396,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (containsBean(propertyName)) {
 				// 递归初始化相关 bean，这里拿到的对象可能不是完整的，即从 earlySingletonObjects 中取到的。
 				Object bean = getBean(propertyName);
-				// 属性赋值
+				// 这里还没有真正的进行赋值
 				pvs.add(propertyName, bean);
-				// 注册属性依赖
+				// 注册属性依赖：propertyName被beanName依赖了
 				registerDependentBean(propertyName, beanName);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Added autowiring by name from bean name '" + beanName +
@@ -1478,13 +1480,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param bw the BeanWrapper the bean was created with
 	 * @return an array of bean property names
 	 * @see org.springframework.beans.BeanUtils#isSimpleProperty
+	 * @see MergedBeanDefinitionPostProcessor 我们可以用这个类来对Bean的一些属性手动赋值
 	 */
 	protected String[] unsatisfiedNonSimpleProperties(AbstractBeanDefinition mbd, BeanWrapper bw) {
 		Set<String> result = new TreeSet<>();
 		PropertyValues pvs = mbd.getPropertyValues();
+		// 根据JavaBean规范得到的属性列表(查找Set或Get方法)
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
-			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
+			// 只要有set方法就会被认为是一个合法的属性描述器
+			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd)
+					// 排除掉我们手动赋值的属性(MergedBeanDefinitionPostProcessor)
+					&& !pvs.contains(pd.getName()) &&
+					// 过滤掉简单类型以及简单类型的数组(基本类型,Class,URI,URI,Date等)
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {
 				result.add(pd.getName());
 			}

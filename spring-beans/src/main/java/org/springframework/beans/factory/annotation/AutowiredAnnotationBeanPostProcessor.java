@@ -368,6 +368,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	public PropertyValues postProcessPropertyValues(
 			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeanCreationException {
 
+		// 找到所有注入点(@Autowire/@Inject/@Value)
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
 			metadata.inject(bean, beanName, pvs);
@@ -430,33 +431,45 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		do {
 			final LinkedList<InjectionMetadata.InjectedElement> currElements = new LinkedList<>();
 
+			// 遍历所有的字段
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				// @Inject
+				// @Autowire
+				// @Value
 				AnnotationAttributes ann = findAutowiredAnnotation(field);
 				if (ann != null) {
+					// 不支持static字段注入
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isWarnEnabled()) {
 							logger.warn("Autowired annotation is not supported on static fields: " + field);
 						}
 						return;
 					}
+					// @Autowire(required=true/false)
 					boolean required = determineRequiredStatus(ann);
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
 
+			// 遍历所有的方法
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 这里和泛型有关系，过滤掉桥接方法。
+				// 如果你的注入点方法是实现了一个泛型方法，那么字节码中会出现一个参数类型为Object类型的桥接方法，这里就是为了过滤掉这种方法。
+				// 这种桥接方法是为了兼容Java5.0以前字节码而由编译器自动生成的
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
 				}
 				AnnotationAttributes ann = findAutowiredAnnotation(bridgedMethod);
 				if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
+					// 静态方法跳过
 					if (Modifier.isStatic(method.getModifiers())) {
 						if (logger.isWarnEnabled()) {
 							logger.warn("Autowired annotation is not supported on static methods: " + method);
 						}
 						return;
 					}
+					// @Autowire注解的方法最好有参数
 					if (method.getParameterCount() == 0) {
 						if (logger.isWarnEnabled()) {
 							logger.warn("Autowired annotation should only be used on methods with parameters: " +
@@ -464,11 +477,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 					}
 					boolean required = determineRequiredStatus(ann);
+					// 根据方法名解析属性名和属性类型
+					// setOrderService => orderService
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
 			});
 
+			// 父类的属性优先注入
 			elements.addAll(0, currElements);
 			targetClass = targetClass.getSuperclass();
 		}
