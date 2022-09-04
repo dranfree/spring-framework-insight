@@ -1072,7 +1072,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);
 		try {
-			// TODO shortcut???
+			// 尝试从缓存里面取，不用去重复解析依赖了。
+			// 如果这里传进来的是ShortcutDependencyDescriptor对象，那么这里能直接拿到beanName，并获得bean对象。
 			Object shortcut = descriptor.resolveShortcut(this);
 			if (shortcut != null) {
 				return shortcut;

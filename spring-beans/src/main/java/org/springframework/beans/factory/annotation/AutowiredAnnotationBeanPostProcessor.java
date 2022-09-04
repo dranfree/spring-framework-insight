@@ -556,6 +556,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	@Nullable
 	private Object resolvedCachedArgument(@Nullable String beanName, @Nullable Object cachedArgument) {
 		if (cachedArgument instanceof DependencyDescriptor) {
+			// ShortcutDependencyDescriptor
 			DependencyDescriptor descriptor = (DependencyDescriptor) cachedArgument;
 			Assert.state(beanFactory != null, "No BeanFactory available");
 			return this.beanFactory.resolveDependency(descriptor, beanName, null, null);
@@ -588,15 +589,20 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			Field field = (Field) this.member;
 			Object value;
 			if (this.cached) {
+				// 对于原型bean是有可能走到这里的
+				// 原型bean在第一次创建的时候不会到这里，也会直接去找注入点；
+				// 第二次进来的时候，this.cached=true，会直接通过这里拿到缓存的依赖的bean的name，不会重复去找。
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
+				// 单例bean永远只会走到下面的逻辑
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					// 解析依赖对象
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
@@ -607,6 +613,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						if (value != null || this.required) {
 							this.cachedFieldValue = desc;
 							registerDependentBeans(beanName, autowiredBeanNames);
+							// 缓存
+							// 为什么这里只缓存beanName呢？防止依赖的bean是原型类型，不能直接缓存bean对象。
 							if (autowiredBeanNames.size() == 1) {
 								String autowiredBeanName = autowiredBeanNames.iterator().next();
 								if (beanFactory.containsBean(autowiredBeanName) &&
