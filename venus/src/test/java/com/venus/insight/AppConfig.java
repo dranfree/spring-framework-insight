@@ -10,4 +10,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy
 @ComponentScan("com.venus")
 public class AppConfig {
+
+
 }
