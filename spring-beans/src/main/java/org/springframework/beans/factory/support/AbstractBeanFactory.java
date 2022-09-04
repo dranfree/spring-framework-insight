@@ -542,6 +542,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return false;
 		}
 		else if (containsSingleton(beanName) && !containsBeanDefinition(beanName)) {
+			// NullBean
 			// null instance registered
 			return false;
 		}

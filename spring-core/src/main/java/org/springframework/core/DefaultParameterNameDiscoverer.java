@@ -45,7 +45,11 @@ public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDisc
 		if (kotlinPresent) {
 			addDiscoverer(new KotlinReflectionParameterNameDiscoverer());
 		}
+		// 基于Java反射机制获取参数名称
+		// 1.Java8以前无法通过反射获取参数名称
+		// 2.Java8以后需要添加编译时选项 --parameters 才能通过反射获取真正的参数名称
 		addDiscoverer(new StandardReflectionParameterNameDiscoverer());
+		// 基于字节码本地变量表获取参数名称
 		addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
 	}
 
