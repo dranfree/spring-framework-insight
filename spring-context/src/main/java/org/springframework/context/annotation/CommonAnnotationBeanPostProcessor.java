@@ -313,6 +313,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	public PropertyValues postProcessPropertyValues(
 			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeansException {
 
+		// 寻找注入点
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
 			metadata.inject(bean, beanName, pvs);
@@ -475,6 +476,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			return this.jndiFactory.getBean(element.mappedName, element.lookupType);
 		}
 		if (this.alwaysUseJndiLookup) {
+			// TODO 这是啥？
 			return this.jndiFactory.getBean(element.name, element.lookupType);
 		}
 		if (this.resourceFactory == null) {
@@ -500,9 +502,12 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		Set<String> autowiredBeanNames;
 		String name = element.name;
 
+		// @Resource注入的时候先 BY_NAME 再 BY_TYPE
+		// @Resource没有指定name属性，那么 element.isDefaultName = true，会先按照属性名称去Bean工厂查询对象。
 		if (this.fallbackToDefaultTypeMatch && element.isDefaultName &&
 				factory instanceof AutowireCapableBeanFactory && !factory.containsBean(name)) {
 			autowiredBeanNames = new LinkedHashSet<>();
+			// 默认通过属性名称去找(没有定义name的情况下)却没有找到bean，那么会fallback到通过类型去找，如果也没有找到的话则会报错。
 			resource = ((AutowireCapableBeanFactory) factory).resolveDependency(
 					element.getDependencyDescriptor(), requestingBeanName, autowiredBeanNames, null);
 			if (resource == null) {
@@ -510,6 +515,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			}
 		}
 		else {
+			// 1.指定了name属性
+			// 2.通过默认属性名在BeanFactory中找到了bean对象
 			resource = factory.getBean(name, element.lookupType);
 			autowiredBeanNames = Collections.singleton(name);
 		}
@@ -582,6 +589,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		private final boolean lazyLookup;
 
+		// Member:字段/方法
 		public ResourceElement(Member member, AnnotatedElement ae, @Nullable PropertyDescriptor pd) {
 			super(member, pd);
 			Resource resource = ae.getAnnotation(Resource.class);
@@ -590,7 +598,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			this.isDefaultName = !StringUtils.hasLength(resourceName);
 			if (this.isDefaultName) {
 				resourceName = this.member.getName();
+				// 讲方法名解析为bean名称
 				if (this.member instanceof Method && resourceName.startsWith("set") && resourceName.length() > 3) {
+					// 首字母变小写
 					resourceName = Introspector.decapitalize(resourceName.substring(3));
 				}
 			}
@@ -614,7 +624,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		@Override
 		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
-			return (this.lazyLookup ? buildLazyResourceProxy(this, requestingBeanName) :
+			return (this.lazyLookup ?
+					// 如果有@Lazy注解，那么构造一个代理对象返回。
+					buildLazyResourceProxy(this, requestingBeanName) :
 					getResource(this, requestingBeanName));
 		}
 	}
