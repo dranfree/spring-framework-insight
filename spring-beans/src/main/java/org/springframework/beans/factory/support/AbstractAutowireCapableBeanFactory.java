@@ -384,11 +384,23 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return result;
 	}
 
+	/**
+	 *
+	 * @see #getEarlyBeanReference(String, RootBeanDefinition, Object)
+	 */
 	@Override
 	public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
 			throws BeansException {
 
 		Object result = existingBean;
+		// Spring中有两种方式可以产生AOP代理：
+		// 1.AbstractAdvisorAutoProxyCreator：AspectJ和事务是通过这种方式做的AOP代理
+		// 2.AbstractAdvisingBeanPostProcessor：@Async和@Valid是通过这种方式做的AOP代理，它没有实现SmartInstantiationAwareBeanPostProcessor接口，拿不到早期引用。
+		// 		通过 AbstractAdvisingBeanPostProcessor 产生的 AOP 代理 bean 被循环依赖时，
+		// 			通过三级缓存 Map<String, ObjectFactory<?>> singletonFactories 来获取 bean 的早期引用时，
+		// 			就不会提前创建 AOP 代理 bean，也就是拿不到最终暴露到 Spring 容器中的 AOP 代理 bean 的早期引用，
+		// 			这样就会导致这种 AOP 代理 bean 循环依赖注入时的引用不正确。
+		// 		通过这种方式产生的AOP代理bean被循环依赖时，会导致Spring容器启动异常，是不支持这种循环依赖的。
 		for (BeanPostProcessor beanProcessor : getBeanPostProcessors()) {
 			Object current = beanProcessor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
@@ -888,11 +900,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd      the merged bean definition for the bean
 	 * @param bean     the raw bean instance
 	 * @return the object to expose as bean reference
+	 * @see AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsAfterInitialization(Object, String) 正常创建bean创建代理走这里
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				// 实现了SmartInstantiationAwareBeanPostProcessor接口的后置处理器才允许提前代理
+				// @Async注解是通过AbstractAdvisingBeanPostProcessor实现的代理，而这个类没有实现SmartInstantiationAwareBeanPostProcessor接口
+				// 因此，@Async注解的类被循环依赖的时候，通过第三级缓存拿不到AOP代理的bean，也就拿不到最终暴露到Spring容器中的AOP代理bean的早期引用，
+				// 这样就会导致这种AOP代理bean循环依赖注入时的引用不正确，需要通过@Lazy注解来规避这种问题。
+				// 这个方法就是为了拿到早期引用的：SmartInstantiationAwareBeanPostProcessor.getEarlyBeanReference(...)
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
 					exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);

@@ -28,6 +28,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 默认扫描所有的 {@link Advisor} 实现类
+ *
  * Generic auto proxy creator that builds AOP proxies for specific beans
  * based on detected Advisors for each bean.
  *
