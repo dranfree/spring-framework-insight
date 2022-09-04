@@ -237,6 +237,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) throws BeansException {
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		// 这个缓存保存当前这个对象是否已经进行过AOP增强，防止重复代理，和循环依赖也有关系。
 		if (!this.earlyProxyReferences.contains(cacheKey)) {
 			this.earlyProxyReferences.add(cacheKey);
 		}

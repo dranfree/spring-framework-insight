@@ -215,6 +215,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param beanName the name of the bean to look for
 	 * @param allowEarlyReference whether early references should be created or not
 	 * @return the registered singleton object, or {@code null} if none found
+	 * @see AbstractAutowireCapableBeanFactory#getEarlyBeanReference(String, RootBeanDefinition, Object) 提前代理的逻辑
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
@@ -223,14 +224,23 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Object singletonObject = this.singletonObjects.get(beanName);
 		// 缓存中没有 bean，且当前 bean 正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			// 为什么要加锁？
+			// 保证在并发环境下调用这个方法获取到的bean不是一个半成品(@Lazy的情况不会在容器启动的时候创建对象)
+			// 但是这个版本这里的加锁是有问题的，可能会引发死锁，请看：
+			// https://github.com/spring-projects/spring-framework/issues/13117
+			// 引发死锁的入口：DefaultSingletonBeanRegistry.getSingleton(beanName, false)
 			synchronized (this.singletonObjects) {
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				if (singletonObject == null && allowEarlyReference) {
-					// 允许提前引用
+					// 加锁应该放在这里，高版本(5.2.9+)已经修正了这个问题。
+					// 出现循环依赖的时候：A -> B -> A
+					// 当构造B的时候，走到这里会拿到一个ObjectFactory对象，获取经过AOP代理的提前引用的A的Bean对象。
+					// @see AbstractAutowireCapableBeanFactory#getEarlyBeanReference(...)
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
-						// 这里拿到的其实是不完整的对象
+						// 这里拿到的是一个半成品，并放入earlySingletonObjects缓存中，下次再获取A的时候就不会再执行AOP逻辑了。
 						singletonObject = singletonFactory.getObject();
+						// 经过代理的半成品缓存
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						this.singletonFactories.remove(beanName);
 					}

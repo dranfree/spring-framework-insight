@@ -558,6 +558,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 		3.2 init-method
 			// 		3.3 @PostConstruct
 			// 4.BeanPostProcessor#postProcessAfterInitialization 初始化后回调
+			// 如果出现循环依赖的时候，这里拿到的就不是代理对象了，往后看（earlySingletonExposure）。
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -571,12 +572,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		if (earlySingletonExposure) {
+			// 从二级缓存里面找已经经过代理的半成品
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
+					// 不一样的情况？既有循环依赖，也有@Async注解的时候。
 					String[] dependentBeans = getDependentBeans(beanName);
 					Set<String> actualDependentBeans = new LinkedHashSet<>(dependentBeans.length);
 					for (String dependentBean : dependentBeans) {
@@ -1743,6 +1746,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			// AOP 发生在此处，当 bean 初始化完成之后，对原始对象进行增强。
 			// org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
+			// @Async：AsyncAnnotationBeanPostProcessor，循环依赖的时候使用@Async注解的同时需要在注入的地方加上@Lazy注解，否则会报错。
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

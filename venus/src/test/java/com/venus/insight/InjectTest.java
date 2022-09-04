@@ -1,5 +1,6 @@
 package com.venus.insight;
 
+import com.venus.insight.cycle.AService;
 import com.venus.insight.loadbalance.LoadBalanceHolder;
 import com.venus.insight.order.ComponentHolder;
 import org.junit.Test;
@@ -18,5 +19,11 @@ public class InjectTest extends BaseTest {
 	@Test
 	public void testOrdered() {
 		getContext().getBean(ComponentHolder.class).test();
+	}
+
+	@Test
+	public void testCycleRef() {
+		// A -> B -> A
+		getContext().getBean(AService.class).testA();
 	}
 }
