@@ -1,6 +1,7 @@
 package com.venus.insight;
 
 import com.venus.insight.loadbalance.LoadBalanceHolder;
+import com.venus.insight.order.ComponentHolder;
 import org.junit.Test;
 
 /**
@@ -12,5 +13,10 @@ public class InjectTest extends BaseTest {
 	@Test
 	public void test() {
 		getContext().getBean(LoadBalanceHolder.class).doSelect();
+	}
+
+	@Test
+	public void testOrdered() {
+		getContext().getBean(ComponentHolder.class).test();
 	}
 }

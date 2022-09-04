@@ -15,5 +15,6 @@ dependencies {
     compile(project(":spring-aop"))
     compile(project(":spring-aspects"))
     compile(project(":spring-test"))
+    compile("javax.annotation:javax.annotation-api:1.3.2")
     testImplementation 'junit:junit:4.13.2'
 }

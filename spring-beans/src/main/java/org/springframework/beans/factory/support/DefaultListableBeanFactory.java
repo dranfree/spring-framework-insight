@@ -1364,7 +1364,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (primaryCandidate != null) {
 			return primaryCandidate;
 		}
-		// 根据 @Priority 注解取最高优先级的 bean
+		// 这里和 PriorityOrdered 接口没关系
+		// 根据 @Priority 注解取最高优先级的 bean，越小的越优先。
 		String priorityCandidate = determineHighestPriorityCandidate(candidates, requiredType);
 		if (priorityCandidate != null) {
 			return priorityCandidate;
