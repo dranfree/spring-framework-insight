@@ -14,7 +14,7 @@ public class AService {
 	@Autowired
 	private BService bService;
 
-	@Async
+//	@Async
 	public void testA() {
 		System.out.println("testA");
 	}

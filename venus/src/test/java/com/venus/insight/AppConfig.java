@@ -1,5 +1,8 @@
 package com.venus.insight;
 
+import com.venus.insight.component.OrderService;
+import com.venus.insight.component.impl.OrderServiceImpl;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -13,5 +16,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @ComponentScan("com.venus")
 public class AppConfig {
 
-
+	@Bean // factory-bean=AppConfig factoryMethod=orderService
+	public OrderService orderService() {
+		return new OrderServiceImpl();
+	}
 }

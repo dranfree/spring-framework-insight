@@ -372,6 +372,7 @@ class ConstructorResolver {
 	 * @param explicitArgs argument values passed in programmatically via the getBean
 	 * method, or {@code null} if none (-> use constructor argument values from bean definition)
 	 * @return a BeanWrapper for the new instance
+	 * @see ConstructorResolver#autowireConstructor(String, RootBeanDefinition, Constructor[], Object[]) 逻辑雷同
 	 */
 	public BeanWrapper instantiateUsingFactoryMethod(
 			final String beanName, final RootBeanDefinition mbd, @Nullable final Object[] explicitArgs) {
@@ -385,6 +386,7 @@ class ConstructorResolver {
 
 		String factoryBeanName = mbd.getFactoryBeanName();
 		if (factoryBeanName != null) {
+			// @Bean注解的方法是一个实例方法
 			if (factoryBeanName.equals(beanName)) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
 						"factory-bean reference points back to the same bean definition");
@@ -397,6 +399,7 @@ class ConstructorResolver {
 			isStatic = false;
 		}
 		else {
+			// @Bean注解的方法是一个静态方法
 			// It's a static factory method on the bean class.
 			if (!mbd.hasBeanClass()) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
@@ -449,6 +452,7 @@ class ConstructorResolver {
 			ConstructorArgumentValues resolvedValues = null;
 			boolean autowiring = (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
+			// 方法名相同，但是重载了，也是需要计算权重的。
 			Set<Method> ambiguousFactoryMethods = null;
 
 			int minNrOfArgs;
