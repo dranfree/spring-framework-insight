@@ -133,7 +133,9 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 			// enhanced class (via the Enhancer) in order to avoid memory leaks.
 			Factory factory = (Factory) instance;
 			factory.setCallbacks(new Callback[] {NoOp.INSTANCE,
+				    // 拦截@Lookup注解的方法
 					new LookupOverrideMethodInterceptor(this.beanDefinition, this.owner),
+				    // 很奇葩的一个功能：<bean id="..." replacer="..." />，用一个方法替换另一个方法，几乎用不到。
 					new ReplaceOverrideMethodInterceptor(this.beanDefinition, this.owner)});
 			return instance;
 		}
