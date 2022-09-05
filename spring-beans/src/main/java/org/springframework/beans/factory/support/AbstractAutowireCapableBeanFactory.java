@@ -1132,14 +1132,25 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 推断构造方法
 		// Need to determine the constructor...
+		// 1.不存在加了@Autowired注解的构造方法：
+		// 1.1 找到了多个构造方法：返回null（Spring无法判断该使用哪一个）
+		// 1.2 只有一个有参构造方法：返回该构造方法
+		// 1.3 只有一个无参构造方法：返回null，在方法外面还是会fallback到无参构造方法。
+		// 2.找到了加了@Autowired注解的构造方法：
+		// 2.1 只有一个required=true的构造方法：返回该构造方法
+		// 2.2 找到多个加了@Autowired注解的构造方法，而且其中至少有一个required=true：抛异常
+		// 2.3 不存在required=true的构造方法：返回所有required=false的构造方法以及无参构造方法(如果存在的话)
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null ||
+				// 需要自动推断
 				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args))  {
 			return autowireConstructor(beanName, mbd, ctors, args);
 		}
 
+		// 不匹配以上情况，直接使用无参构造方法。
 		// No special handling: simply use no-arg constructor.
 		return instantiateBean(beanName, mbd);
 	}
@@ -1208,6 +1219,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					// 只有这一个实现类：AutowiredAnnotationBeanPostProcessor，这里面处理了@Lookup注解。
 					Constructor<?>[] ctors = ibp.determineCandidateConstructors(beanClass, beanName);
 					if (ctors != null) {
 						return ctors;
