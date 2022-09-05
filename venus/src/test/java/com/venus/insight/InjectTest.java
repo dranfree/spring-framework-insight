@@ -2,6 +2,7 @@ package com.venus.insight;
 
 import com.venus.insight.cycle.AService;
 import com.venus.insight.loadbalance.LoadBalanceHolder;
+import com.venus.insight.lookup.RanYeah;
 import com.venus.insight.order.ComponentHolder;
 import org.junit.Test;
 
@@ -24,6 +25,10 @@ public class InjectTest extends BaseTest {
 	@Test
 	public void testCycleRef() {
 		// A -> B -> A
-		getContext().getBean(AService.class).testA();
+//		getContext().getBean(AService.class).testA();
+		RanYeah ranYeah = getContext().getBean(RanYeah.class);
+		ranYeah.test();
+		ranYeah.test();
+		ranYeah.test();
 	}
 }
