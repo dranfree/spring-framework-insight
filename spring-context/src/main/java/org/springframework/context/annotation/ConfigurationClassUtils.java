@@ -79,6 +79,8 @@ abstract class ConfigurationClassUtils {
 	 * @return whether the candidate qualifies as (any kind of) configuration class
 	 */
 	public static boolean checkConfigurationClassCandidate(BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
+		// @Bean定义的配置类是不生效的
+		// 为什么呢？可能是很难处理这种情况而且没什么太大的必要...
 		String className = beanDef.getBeanClassName();
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
@@ -109,9 +111,13 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 加了@Configuration注解就是一个配置类
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// 没有加@Configuration注解，但是下面这两种情况，也能算是一个配置类：
+		// 1.存在 @Component/@ComponentScan/@Import/@ImportResource 注解
+		// 2.存在 @Bean 注解的方法
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -119,6 +125,7 @@ abstract class ConfigurationClassUtils {
 			return false;
 		}
 
+		// @Order注解排序
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
 		Integer order = getOrder(metadata);
 		if (order != null) {
@@ -165,6 +172,10 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		// 1.Component
+		// 2.ComponentScan
+		// 3.Import
+		// 4.ImportResource
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;

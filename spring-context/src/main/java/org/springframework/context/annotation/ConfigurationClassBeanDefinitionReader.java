@@ -134,13 +134,17 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// @Import导入进来的，也要注册一个 Beandefinition
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+
+		// 获取 @Bean 定义的 BeanDefinition
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 从 @ImportResource 引入的 XML 文件中扫描 BeanDefinition
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}

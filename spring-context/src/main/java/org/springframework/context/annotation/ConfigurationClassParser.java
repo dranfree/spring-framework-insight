@@ -185,6 +185,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		// 这个延迟导入为什么要在这里执行？有个屁用
 		processDeferredImportSelectors();
 	}
 
@@ -242,10 +243,12 @@ class ConfigurationClassParser {
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
+			// 解析配置类的核心逻辑
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass);
 		}
-		while (sourceClass != null);
+		while (sourceClass != null); // 递归解析父配置类
 
+		// 放到一个Map中去重，为什么是一个Map？
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -261,6 +264,7 @@ class ConfigurationClassParser {
 	protected final SourceClass doProcessConfigurationClass(ConfigurationClass configClass, SourceClass sourceClass)
 			throws IOException {
 
+		// 递归处理内部类
 		// Recursively process any member (nested) classes first
 		processMemberClasses(configClass, sourceClass);
 
@@ -269,6 +273,7 @@ class ConfigurationClassParser {
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
 			if (this.environment instanceof ConfigurableEnvironment) {
+				// 解析配置文件并将参数对注册到Environment中
 				processPropertySource(propertySource);
 			}
 			else {
@@ -286,6 +291,7 @@ class ConfigurationClassParser {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
+				// 如果扫描出来的也是一个配置类，那么递归处理。
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
@@ -293,6 +299,7 @@ class ConfigurationClassParser {
 						bdCand = holder.getBeanDefinition();
 					}
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+						// 递归处理，这里不会导致无限递归吗？？？不会，在componentScanParser中有去重。
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
 				}
@@ -302,6 +309,7 @@ class ConfigurationClassParser {
 		// Process any @Import annotations
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
+		// 这个注解可以用来导入XML配置文件
 		// Process any @ImportResource annotations
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
@@ -309,20 +317,24 @@ class ConfigurationClassParser {
 			String[] resources = importResource.getStringArray("locations");
 			Class<? extends BeanDefinitionReader> readerClass = importResource.getClass("reader");
 			for (String resource : resources) {
+				// 将导入的XML文件路径添加到当前配置类中
 				String resolvedResource = this.environment.resolveRequiredPlaceholders(resource);
 				configClass.addImportedResource(resolvedResource, readerClass);
 			}
 		}
 
+		// 这里还没有真正的解析 @Bean 注解
 		// Process individual @Bean methods
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
 		}
 
+		// Java8+ default 方法处理
 		// Process default methods on interfaces
 		processInterfaces(configClass, sourceClass);
 
+		// 递归处理父类
 		// Process superclass, if any
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
@@ -607,19 +619,23 @@ class ConfigurationClassParser {
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
+						// 直接实例化ImportSelector对象并执行selectImports(...)方法
 						ImportSelector selector = BeanUtils.instantiateClass(candidateClass, ImportSelector.class);
 						ParserStrategyUtils.invokeAwareMethods(
 								selector, this.environment, this.resourceLoader, this.registry);
 						if (this.deferredImportSelectors != null && selector instanceof DeferredImportSelector) {
+							// 延迟导入
 							this.deferredImportSelectors.add(
 									new DeferredImportSelectorHolder(configClass, (DeferredImportSelector) selector));
 						}
 						else {
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames);
+							// 递归调用：将导入的类中的普通ImportSelector也一并处理
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}
+					// 这个接口也是可以用来注册 BeanDefinition 的，MyBatis使用了这个类。
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
