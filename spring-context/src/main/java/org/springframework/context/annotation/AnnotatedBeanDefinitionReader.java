@@ -67,6 +67,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @see #setEnvironment(Environment)
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+		// 会创建一个环境容器
 		this(registry, getOrCreateEnvironment(registry));
 	}
 

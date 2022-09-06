@@ -34,6 +34,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.ContextLoader;
 
 /**
+ * 这个SpringMVC使用的容器类
+ *
  * {@link org.springframework.web.context.WebApplicationContext WebApplicationContext}
  * implementation which accepts annotated classes as input - in particular
  * {@link org.springframework.context.annotation.Configuration @Configuration}-annotated

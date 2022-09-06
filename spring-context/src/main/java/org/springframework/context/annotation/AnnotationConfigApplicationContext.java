@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * SpringBoot中用的是这个
+ *
  * Standalone application context, accepting annotated classes as input - in particular
  * {@link Configuration @Configuration}-annotated classes, but also plain
  * {@link org.springframework.stereotype.Component @Component} types and JSR-330 compliant
@@ -83,9 +85,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+		// AnnotatedBeanDefinitionReader：读取配置类
+		// ClassPathBeanDefinitionScanner：扫描并注册BeanDefinition
+		// 在 GenericApplicationContext 中会创建一个 DefaultListableBeanFactory
 		this();
+		// 注册配置类
 		register(annotatedClasses);
-		refresh();
+		refresh(); // 模板方法：AbstractApplicationContext
 	}
 
 	/**

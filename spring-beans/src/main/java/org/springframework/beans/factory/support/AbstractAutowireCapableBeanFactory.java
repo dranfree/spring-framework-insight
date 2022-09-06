@@ -1524,7 +1524,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
 			// 只要有set方法就会被认为是一个合法的属性描述器
-			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd)
+			if (pd.getWriteMethod() != null
+					// 排除掉 autowire：BeanFactory.ignoreDependencyInterface(...)
+					&& !isExcludedFromDependencyCheck(pd)
 					// 排除掉我们手动赋值的属性(MergedBeanDefinitionPostProcessor)
 					&& !pvs.contains(pd.getName()) &&
 					// 过滤掉简单类型以及简单类型的数组(基本类型,Class,URI,URI,Date等)

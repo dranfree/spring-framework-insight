@@ -35,6 +35,8 @@ import org.springframework.web.context.ServletConfigAware;
 import org.springframework.web.context.ServletContextAware;
 
 /**
+ * Web环境下使用的容器的父类
+ *
  * {@link org.springframework.context.support.AbstractRefreshableApplicationContext}
  * subclass which implements the
  * {@link org.springframework.web.context.ConfigurableWebApplicationContext}
@@ -209,6 +211,10 @@ public abstract class AbstractRefreshableWebApplicationContext extends AbstractR
 	protected void initPropertySources() {
 		ConfigurableEnvironment env = getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
+			// 将 ServletContext 和 ServletConfig 中的属性注册到 Spring 的上下文环境中:
+			// <context-param>
+			// 	   ...
+			// </context-param>
 			((ConfigurableWebEnvironment) env).initPropertySources(this.servletContext, this.servletConfig);
 		}
 	}
