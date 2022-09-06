@@ -42,7 +42,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Juergen Hoeller
  * @since 4.3.4
- * @see EventListenerMethodProcessor 用于扫描@EventListener注解
+ * @see EventListenerMethodProcessor 用于扫描@EventListener注解，发生在所有非懒加载bean创建完成之后。
  */
 class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, MergedBeanDefinitionPostProcessor {
 
