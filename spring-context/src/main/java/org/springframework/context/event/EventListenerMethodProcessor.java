@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * 在容器中所有非懒加载bean创建完成之后回调
+ *
  * Register {@link EventListener} annotated method as individual {@link ApplicationListener}
  * instances.
  *
@@ -163,6 +165,7 @@ public class EventListenerMethodProcessor implements SmartInitializingSingleton,
 					for (EventListenerFactory factory : factories) {
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
+							// 将@EventListener注解的方法适配为一个ApplicationListener对象，并注册到容器中去。
 							ApplicationListener<?> applicationListener =
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {

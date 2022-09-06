@@ -838,6 +838,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Add beans that implement ApplicationListener as listeners.
 	 * Doesn't affect other listeners, which can be added without being beans.
+	 *
+	 * @see ApplicationListenerDetector 检测所有的事件监听器
+	 * @see org.springframework.context.event.EventListenerMethodProcessor 检测所有的@EventListener注解，将其包装为ApplicationListener实例。
 	 */
 	protected void registerListeners() {
 		// 默认情况：SimpleApplicationEventMulticaster

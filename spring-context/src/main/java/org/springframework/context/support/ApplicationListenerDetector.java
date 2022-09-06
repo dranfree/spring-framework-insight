@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcess
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.EventListenerMethodProcessor;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -41,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Juergen Hoeller
  * @since 4.3.4
+ * @see EventListenerMethodProcessor 用于扫描@EventListener注解
  */
 class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, MergedBeanDefinitionPostProcessor {
 
@@ -72,6 +74,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 			// potentially not detected as a listener by getBeanNamesForType retrieval
 			Boolean flag = this.singletonNames.get(beanName);
 			if (Boolean.TRUE.equals(flag)) {
+				// 将实现了ApplicationListener接口的bean注册为事件监听器
 				// singleton bean (top-level or inner): register on the fly
 				this.applicationContext.addApplicationListener((ApplicationListener<?>) bean);
 			}
