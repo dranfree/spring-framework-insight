@@ -15,4 +15,8 @@ public class RanYeahBean {
 	public void logSelf() {
 		System.out.println(this);
 	}
+
+	public void echo(String message) {
+		System.out.println(message);
+	}
 }
