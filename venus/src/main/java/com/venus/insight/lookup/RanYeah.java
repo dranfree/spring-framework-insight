@@ -15,6 +15,7 @@ public class RanYeah {
 	}
 
 	@Lookup
+	@RanYeahLookup
 	public RanYeahBean lookUp() {
 		throw new UnsupportedOperationException();
 	}

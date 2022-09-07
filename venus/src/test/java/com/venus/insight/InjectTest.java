@@ -3,8 +3,10 @@ package com.venus.insight;
 import com.venus.insight.cycle.AService;
 import com.venus.insight.loadbalance.LoadBalanceHolder;
 import com.venus.insight.lookup.RanYeah;
+import com.venus.insight.lookup.RanYeahLookupProxyFactory;
 import com.venus.insight.order.ComponentHolder;
 import org.junit.Test;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * @author RanYeah
@@ -30,5 +32,15 @@ public class InjectTest extends BaseTest {
 		ranYeah.test();
 		ranYeah.test();
 		ranYeah.test();
+	}
+
+	@Test
+	public void testCglib() {
+		ConfigurableApplicationContext context = getContext();
+		RanYeah ranYeah = new RanYeah();
+		RanYeah proxy = (RanYeah) RanYeahLookupProxyFactory.getProxy(ranYeah, context);
+		System.out.println(proxy.lookUp());
+		System.out.println(proxy.lookUp());
+		System.out.println(proxy.lookUp());
 	}
 }
