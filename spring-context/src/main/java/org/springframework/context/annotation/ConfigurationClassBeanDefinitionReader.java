@@ -272,6 +272,7 @@ class ConfigurationClassBeanDefinitionReader {
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 
+	// @Bean覆盖@Component
 	protected boolean isOverriddenByExistingDefinition(BeanMethod beanMethod, String beanName) {
 		if (!this.registry.containsBeanDefinition(beanName)) {
 			return false;
