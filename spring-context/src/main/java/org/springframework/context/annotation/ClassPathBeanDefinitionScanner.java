@@ -261,6 +261,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	}
 
 	/**
+	 * MyBatis的ClassPathMapperScanner里面也重写了这个方法，将扫描到的BeanDefinition再重新
+	 *
 	 * Perform a scan within the specified base packages,
 	 * returning the registered bean definitions.
 	 * <p>This method does <i>not</i> register an annotation config processor

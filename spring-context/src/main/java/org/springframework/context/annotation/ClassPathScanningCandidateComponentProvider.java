@@ -435,12 +435,14 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 					try {
 						// 元数据读取器(读取类元数据和注解元数据)
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
-						// 过滤器过滤
+						// 过滤器过滤：includeFilters/excludeFilters
+						// 这个方法可以被子类重写，修改判断逻辑，MyBatis(ClassPathMapperScanner)重写了这个方法，放行了所有的类。
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
 							// 过滤掉内部类、抽象类
+							// 这个方法也可以被子类重写，MyBatis(ClassPathMapperScanner)也重写了这个方法，只接受所有的接口类。
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
