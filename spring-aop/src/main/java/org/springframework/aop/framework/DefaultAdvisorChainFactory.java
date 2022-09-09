@@ -63,10 +63,15 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 				// Add it conditionally.
 				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
 				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
+					// advisor转化成advice
 					MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
 					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
 					if (MethodMatchers.matches(mm, method, actualClass, hasIntroductions)) {
 						if (mm.isRuntime()) {
+							// runtime=true需要匹配两次：
+							// 1.matches(java.lang.reflect.Method, java.lang.Class<?>)
+							// 2.boolean matches(Method method, @Nullable Class<?> targetClass, Object... args);
+							// 也就是需要在运行时根据方法参数的值来决定是否需要指定对应的advice逻辑。感觉用处不是很大~
 							// Creating a new object instance in the getInterceptors() method
 							// isn't a problem as we normally cache created chains.
 							for (MethodInterceptor interceptor : interceptors) {
@@ -74,6 +79,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 							}
 						}
 						else {
+							// 这种拦截器是否执行和参数无关
 							interceptorList.addAll(Arrays.asList(interceptors));
 						}
 					}
