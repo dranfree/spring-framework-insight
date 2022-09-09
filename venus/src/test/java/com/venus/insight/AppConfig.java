@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author RanYeah
@@ -14,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @EnableAspectJAutoProxy
 @ComponentScan("com.venus")
+@EnableTransactionManagement // TransactionInterceptor
 public class AppConfig {
 
 	@Bean // factory-bean=AppConfig factoryMethod=orderService

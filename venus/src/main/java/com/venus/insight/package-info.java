@@ -11,6 +11,7 @@
  * @see org.springframework.beans.factory.support.ConstructorResolver#instantiateUsingFactoryMethod(String, RootBeanDefinition, Object[]) @Bean注解处理
  * @see org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator Advisor切面增强后置处理器
  * @see org.springframework.aop.framework.AbstractAdvisingBeanPostProcessor @Async/@Valid切面增强后置处理器
+ * @see org.springframework.transaction.interceptor.TransactionInterceptor 事务AOP拦截器
  * @since 2022/9/5
  */
 package com.venus.insight;
