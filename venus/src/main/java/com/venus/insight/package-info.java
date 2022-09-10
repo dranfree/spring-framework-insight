@@ -12,6 +12,9 @@
  * @see org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator Advisor切面增强后置处理器
  * @see org.springframework.aop.framework.AbstractAdvisingBeanPostProcessor @Async/@Valid切面增强后置处理器
  * @see org.springframework.transaction.interceptor.TransactionInterceptor 事务AOP拦截器
+ * @see org.springframework.web.servlet.DispatcherServlet SpringMVC请求处理的入口，前端控制器，核心调度器。加载一个独立的Spring容器。
+ * @see org.springframework.web.context.ContextLoaderListener 启动SpringMVC容器
+ * @see javax.servlet.ServletContainerInitializer Servlet3.0提供的SPI，用于替代xml配置。
  * @since 2022/9/5
  */
 package com.venus.insight;

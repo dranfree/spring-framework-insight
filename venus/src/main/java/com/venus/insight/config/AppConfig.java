@@ -1,4 +1,4 @@
-package com.venus.insight;
+package com.venus.insight.config;
 
 import com.venus.insight.component.OrderService;
 import com.venus.insight.component.impl.OrderServiceImpl;

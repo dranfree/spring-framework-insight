@@ -1,6 +1,7 @@
 package com.venus.insight;
 
 import com.venus.insight.component.OrderService;
+import com.venus.insight.config.AppConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;

@@ -1,8 +1,8 @@
 package com.venus.insight;
 
+import com.venus.insight.config.AppConfig;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 /**
  * @author RanYeah

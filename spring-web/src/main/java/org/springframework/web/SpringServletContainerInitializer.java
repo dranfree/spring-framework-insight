@@ -109,10 +109,12 @@ import org.springframework.util.ReflectionUtils;
  * @see #onStartup(Set, ServletContext)
  * @see WebApplicationInitializer
  */
-@HandlesTypes(WebApplicationInitializer.class)
+@HandlesTypes(WebApplicationInitializer.class) // SPI机制，Tomcat会将这个注解的所有实现类传递给onStartup方法。
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
 
 	/**
+	 * Serlvet容器(Tomecat)启动的时候会调用这个方法，Spring利用这个API注册DispatcherServlet核心调度器，替代web.xml配置文件。
+	 *
 	 * Delegate the {@code ServletContext} to any {@link WebApplicationInitializer}
 	 * implementations present on the application classpath.
 	 * <p>Because this class declares @{@code HandlesTypes(WebApplicationInitializer.class)},
