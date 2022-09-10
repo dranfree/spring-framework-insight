@@ -186,6 +186,7 @@ class ConfigurationClassParser {
 		}
 
 		// 这个延迟导入为什么要在这里执行？有个屁用
+		// SpringBoot的自动配置类解析是在这一步执行的：AutoConfigurationImportSelector，确保手动注入的bean定义在依赖的JAR包中的bean之前解析，也就是优先导入用户自己定义的bean。
 		processDeferredImportSelectors();
 	}
 
