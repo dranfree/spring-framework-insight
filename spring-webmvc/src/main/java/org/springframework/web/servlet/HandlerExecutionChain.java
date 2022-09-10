@@ -27,6 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.servlet.mvc.Controller;
 
 /**
  * Handler execution chain, consisting of handler object and any handler interceptors.
@@ -40,6 +42,11 @@ public class HandlerExecutionChain {
 
 	private static final Log logger = LogFactory.getLog(HandlerExecutionChain.class);
 
+	/**
+	 * @see Controller
+	 * @see javax.servlet.Servlet
+	 * @see HttpRequestHandler
+	 */
 	private final Object handler;
 
 	@Nullable
