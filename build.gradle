@@ -1,7 +1,12 @@
 buildscript {
 	repositories {
-		maven { url 'https://maven.aliyun.com/repository/google/' }
-		maven { url 'https://maven.aliyun.com/repository/jcenter/'}
+		maven { url 'https://maven.aliyun.com/repository/public' }
+		maven { url 'https://maven.aliyun.com/repository/google' }
+		maven { url 'https://maven.aliyun.com/repository/jcenter'}
+		maven { url 'https://maven.aliyun.com/repository/spring'}
+		maven { url 'https://maven.aliyun.com/repository/spring-plugin'}
+		maven { url 'https://maven.aliyun.com/repository/gradle-plugin'}
+		// Spring仓库需要认证
 		maven { url "https://repo.spring.io/plugins-release" }
 	}
 	dependencies {
@@ -140,8 +145,13 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
-		maven { url 'https://maven.aliyun.com/repository/google/' }
-		maven { url 'https://maven.aliyun.com/repository/jcenter/'}
+		maven { url 'https://maven.aliyun.com/repository/public' }
+		maven { url 'https://maven.aliyun.com/repository/google' }
+		maven { url 'https://maven.aliyun.com/repository/jcenter'}
+		maven { url 'https://maven.aliyun.com/repository/spring'}
+		maven { url 'https://maven.aliyun.com/repository/spring-plugin'}
+		maven { url 'https://maven.aliyun.com/repository/gradle-plugin'}
+		// Spring仓库需要认证
 		maven { url "https://repo.spring.io/libs-release" }
 	}
 
