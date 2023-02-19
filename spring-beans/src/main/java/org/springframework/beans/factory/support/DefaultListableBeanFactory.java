@@ -1057,6 +1057,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				private OrderService orderService; // 这里拿到的是一个代理对象
 			 */
 			// 添加了@Lazy注解的时候，这里直接构造一个代码对象返回，真正使用该代理对象的时候才会去找Bean。
+			// 添加@Lazy可以解决由于被依赖对象上存在@Async注解而导致的循环依赖处理失败的问题，其实就是不让创建提前引用。
 			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(
 					descriptor, requestingBeanName);
 			if (result == null) {

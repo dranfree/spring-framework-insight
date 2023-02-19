@@ -570,6 +570,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 		3.2 init-method
 			// 4.BeanPostProcessor#postProcessAfterInitialization 初始化后回调
 			// 如果出现循环依赖的时候，这里拿到的就不是代理对象了，往后看（earlySingletonExposure）。
+			// 注意：@Async注解的方法，这里返回的是经过Async代理的对象，而AsyncAnnotationBeanPostProcessor不支持暴露提前引用，循环依赖的时候其他地方引用的是一个原始对象(或者仅经过AbstractAutoProxyCreator代理的对象)。
+			// 两种情况：
+			// 1.如果出现循环依赖，但是没有@Async注解，那么无论有没有AOP代理，这里拿到的都是原始对象(对于提前暴露过引用的bean，AbstractAutoProxyCreator会返回原始对象)。
+			//	 这种情况下循环依赖是没有问题的。
+			// 2.如果出现循环依赖，并且存在@Async注解，那么这里会返回一个经过Async代理的对象。
+			// 	 然而，提前暴露出去的引用是不经过Async代理的，这样导致对于同一个原始对象出现了两个不同的对象，在其他地方注入的是一个，最终得到的又是另一个。
+			// 然而，@Async注解会不会导致循环依赖处理失败，和bean的创建顺序也有关系，会出现有的时候报错有的时候又正常。
+			// 只有在先创建有Async注解的对象时，才会出现循环依赖失败。
+			// 举个例子，A依赖B，B依赖A，B某个方法上有@Async注解。
+			// 假设先创建A再创建B，那么创建B的时候会拿到A的提前引用，而A没有@Async代理，得到的是原始对象，这种情况是能正常处理的。
+			// 假设先创建B再创建A，那么创建A的时候会去拿B的提前引用，而B的提前引用没有经过Async代理的，那么在后面会去二级缓存中去拿B的提前引用，而这个引用却不包含Async代理，导致不符合预期，会报错。
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -582,15 +593,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// ????????????????????????
 		if (earlySingletonExposure) {
-			// 从二级缓存里面找已经经过代理的半成品
+			// 出现了循环依赖之后，这里会从二级缓存里面找到已经经过代理的半成品。
+			// 这里的earlySingletonReference就是其他对象依赖的对象，而如果存在@Async注解，这里的exposedObject却是经过Async代理的对象，两个对象不一样！
+			// 这种情况只能通过在存在@Async注解的对象上使用@Lazy来解决。
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
-					// 不一样的情况？既有循环依赖，也有@Async注解的时候。
+					// 不一样的情况？既有循环依赖，也有@Async注解的时候：AsyncAnnotationBeanPostProcessor
 					String[] dependentBeans = getDependentBeans(beanName);
 					Set<String> actualDependentBeans = new LinkedHashSet<>(dependentBeans.length);
 					for (String dependentBean : dependentBeans) {
