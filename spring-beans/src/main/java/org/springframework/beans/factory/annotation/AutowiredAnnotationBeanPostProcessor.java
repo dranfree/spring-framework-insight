@@ -588,6 +588,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 
 	/**
+	 * 对应一个字段的注入点
+	 *
 	 * Class representing injection information about an annotated field.
 	 */
 	private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
@@ -639,6 +641,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 								String autowiredBeanName = autowiredBeanNames.iterator().next();
 								if (beanFactory.containsBean(autowiredBeanName) &&
 										beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+									// 设置注入点的缓存
 									this.cachedFieldValue = new ShortcutDependencyDescriptor(
 											desc, autowiredBeanName, field.getType());
 								}
@@ -660,6 +663,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 
 	/**
+	 * 对应一个方法的注入点
+	 *
 	 * Class representing injection information about an annotated method.
 	 */
 	private class AutowiredMethodElement extends InjectionMetadata.InjectedElement {

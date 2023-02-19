@@ -1060,6 +1060,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(
 					descriptor, requestingBeanName);
 			if (result == null) {
+				// 依赖解析的核心方法
 				result = doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 			}
 			return result;
@@ -1072,8 +1073,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);
 		try {
+			// 对于原型bean而言，第二次依赖注入的时候，在这里可以命中缓存。
 			// 尝试从缓存里面取，不用去重复解析依赖了。
 			// 如果这里传进来的是ShortcutDependencyDescriptor对象，那么这里能直接拿到beanName，并获得bean对象。
+			// 这个缓存是在 AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement.inject 中设置的
 			Object shortcut = descriptor.resolveShortcut(this);
 			if (shortcut != null) {
 				return shortcut;
