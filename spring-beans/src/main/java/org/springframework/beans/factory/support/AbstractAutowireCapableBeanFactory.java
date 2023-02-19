@@ -564,11 +564,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			populateBean(beanName, mbd, instanceWrapper);
 			// 初始化对象
 			// 1.BeanAware
-			// 2.BeanPostProcessor#postProcessBeforeInitialization 初始化前回调
-			// 3.init-method
+			// 2.BeanPostProcessor#postProcessBeforeInitialization 初始化前回调，@PostConstruct 在这一步处理。
+			// 3.init-method，按照顺序是：
 			// 		3.1 InitializingBean
 			// 		3.2 init-method
-			// 		3.3 @PostConstruct
 			// 4.BeanPostProcessor#postProcessAfterInitialization 初始化后回调
 			// 如果出现循环依赖的时候，这里拿到的就不是代理对象了，往后看（earlySingletonExposure）。
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
@@ -1341,7 +1340,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			return;
 		}
 
-		// 获取属性值
+		// 获取属性值（这里是手动给属性赋的值，不是自动依赖注入的）
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		// 这里和@Autowire注解毫无关系
@@ -1819,6 +1818,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected void invokeInitMethods(String beanName, final Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
 
+		// 1. InitializingBean
 		boolean isInitializingBean = (bean instanceof InitializingBean);
 		if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {
 			if (logger.isDebugEnabled()) {
@@ -1840,6 +1840,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 2. init-method
 		if (mbd != null && bean.getClass() != NullBean.class) {
 			String initMethodName = mbd.getInitMethodName();
 			if (StringUtils.hasLength(initMethodName) &&

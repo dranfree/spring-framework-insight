@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.util.Locale;
+
 /**
  * @author RanYeah
  * @since 2022/8/30
@@ -22,6 +24,8 @@ public class ApplicationTest {
 //		context.registerShutdownHook();
 		OrderService orderService = context.getBean(OrderService.class);
 		orderService.create(1L);
+		String translate = context.getMessage("test", null, Locale.CHINA);
+		System.out.println(translate);
 		context.close();
 	}
 

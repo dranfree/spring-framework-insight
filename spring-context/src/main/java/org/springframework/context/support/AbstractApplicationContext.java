@@ -553,6 +553,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				initApplicationEventMulticaster();
 
 				// 钩子方法
+				// Spring Boot 利用这个钩子启动 Tomcat 服务器
 				// Initialize other special beans in specific context subclasses.
 				onRefresh();
 
@@ -1019,6 +1020,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 销毁方法的入口
+	 *
 	 * Actually performs context closing: publishes a ContextClosedEvent and
 	 * destroys the singletons in the bean factory of this application context.
 	 * <p>Called by both {@code close()} and a JVM shutdown hook, if any.

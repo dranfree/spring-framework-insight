@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement // TransactionInterceptor
 public class AppConfig {
 
-	@Bean // factory-bean=AppConfig factoryMethod=orderService
-	public OrderService orderService() {
-		return new OrderServiceImpl();
-	}
+//	@Bean // factory-bean=AppConfig factoryMethod=orderService
+//	public OrderService orderService() {
+//		return new OrderServiceImpl();
+//	}
 }
