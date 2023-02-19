@@ -594,6 +594,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// ????????????????????????
+		// TODO 为什么@Async注解不用SmartInstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation来实现呢？只要能够暴露提前引用不就好了吗？
 		if (earlySingletonExposure) {
 			// 出现了循环依赖之后，这里会从二级缓存里面找到已经经过代理的半成品。
 			// 这里的earlySingletonReference就是其他对象依赖的对象，而如果存在@Async注解，这里的exposedObject却是经过Async代理的对象，两个对象不一样！
