@@ -56,7 +56,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		for (Annotation ann : descriptor.getAnnotations()) {
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
 			if (lazy != null && lazy.value()) {
-				return true;
+				return true  ;
 			}
 		}
 		MethodParameter methodParam = descriptor.getMethodParameter();

@@ -241,6 +241,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		// 循环解析父类
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {

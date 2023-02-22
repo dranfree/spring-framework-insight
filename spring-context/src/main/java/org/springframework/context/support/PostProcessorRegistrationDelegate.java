@@ -47,6 +47,10 @@ class PostProcessorRegistrationDelegate {
 		// 核心是:
 		// 1.先执行：BeanDefinitionRegistryPostProcessor.postProcessBeanDefinitionRegistry，这里可能会扫描出其他的 BeanFactoryPostProcessor，因为这个方法是允许注册 BeanDefinition 的。
 		// 2.再执行：BeanFactoryPostProcessor.postProcessBeanFactory
+		// 在分别执行 postProcessBeanDefinitionRegistry 和 postProcessBeanFactory 的时候也要遵循顺序：
+		// 1.先执行实现了 PriorityOrdered 接口的，并按照优先级排序；
+		// 2.再执行实现了 Ordered 接口的，并按照优先级排序；
+		// 3.最后执行既没有实现 Ordered 接口，也没有实现 PriorityOrdered 接口的处理器。
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;

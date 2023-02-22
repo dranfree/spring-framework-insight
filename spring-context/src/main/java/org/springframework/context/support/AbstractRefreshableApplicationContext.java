@@ -122,6 +122,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// AnnotationConfigWebApplicationContext
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
