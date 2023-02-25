@@ -74,6 +74,8 @@ public interface MethodMatcher {
 	boolean isRuntime();
 
 	/**
+	 * 当 isRuntime = true 的时候才会调这个方法判断是否需要执行代理逻辑
+	 *
 	 * Check whether there a runtime (dynamic) match for this method,
 	 * which must have matched statically.
 	 * <p>This method is invoked only if the 2-arg matches method returns

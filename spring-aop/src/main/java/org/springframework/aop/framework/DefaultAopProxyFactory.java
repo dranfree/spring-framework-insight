@@ -48,10 +48,11 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+		// isOptimize：在老版本JDK上，动态代理效率比Cglib要低，所以如果你需要优化可以使用Cglib而不使用JDK动态里。
 		if (config.isOptimize()
 				// EnableAspectJAutoProxy.proxyTargetClass = true
 				|| config.isProxyTargetClass()
-				// 没有调用 addInterface(...) 添加接口
+				// 没有调用 addInterface(...) 添加接口，目标类自己实现的接口这里是不判断的。
 				|| hasNoUserSuppliedProxyInterfaces(config)) {
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {
