@@ -215,6 +215,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					}
 				}
 				if (beanType != null && isHandler(beanType)) {
+					// 查找所有加了 @RequestMapping 注解的方法
 					detectHandlerMethods(beanName);
 				}
 			}
@@ -550,6 +551,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
+					// 同一个路径可能对应一个List，因为一个路径可能对应多个方法，比如 GET、POST 等。
 					this.urlLookup.add(url, mapping);
 				}
 

@@ -960,10 +960,17 @@ public class DispatcherServlet extends FrameworkServlet {
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
+				// DispatcherServlet.properties
+
 				// 这里获取处理器执行链，包含拦截器和真正的处理器对象
 				// Determine handler for the current request.
+				// 遍历 HandlerMapping：
+				// 1.BeanNameUrlHandlerMapping
+				// 2.RequestMappingHandlerMapping
+				// 这里还会找到所有的 HandlerInterceptor 执行链
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
+					// 没有找到 => 404
 					noHandlerFound(processedRequest, response);
 					return;
 				}
@@ -971,6 +978,9 @@ public class DispatcherServlet extends FrameworkServlet {
 				// 处理器适配器：
 				// 每一种处理器的入参和返回值是不一样的，这个适配器就是根据请求类型适配为对应的参数，并将返回值适配为统一的ModelAndView对象。
 				// Determine handler adapter for the current request.
+				// 1.HttpRequestHandlerAdapter：适配 HttpRequestHandler
+				// 2.SimpleControllerHandlerAdapter：适配 Controller 接口
+				// 3.RequestMappingHandlerAdapter：适配 @RequestMapping 注解的方法
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -987,11 +997,12 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// 前置处理器，这里可以阻断请求
+				// 这里调用所有 HandlerInterceptor 的 preHandle 方法，如果有一个返回 false，就会中断请求。
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
-				// 执行处理器方法（一般就是@RequestMapping注解的方法）
+				// HandlerAdapter执行处理器方法（一般就是@RequestMapping注解的方法），并将返回值适配成 ModelAndView 对象。
 				// Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
@@ -1001,6 +1012,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 				applyDefaultViewName(processedRequest, mv);
 				// 后置处理器
+				// 这里调用所有 HandlerInterceptor 的 postHandle 方法。
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
